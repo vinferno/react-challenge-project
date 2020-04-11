@@ -6,6 +6,12 @@ import './viewOrders.css';
 class ViewOrders extends Component {
     state = {
         orders: []
+    };
+
+    pad2(value) {
+        return new Intl.NumberFormat('en-IN', {
+            minimumIntegerDigits: 2,
+        }).format(value)
     }
 
     componentDidMount() {
