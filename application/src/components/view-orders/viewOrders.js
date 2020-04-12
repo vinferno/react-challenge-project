@@ -2,7 +2,6 @@ import React, { Component } from 'react';
 import { Template } from '../../components';
 import { SERVER_IP } from '../../private';
 import './viewOrders.css';
-import moment from 'moment'
 
 class ViewOrders extends Component {
     state = {
@@ -26,7 +25,7 @@ class ViewOrders extends Component {
             <Template>
                 <div className="container-fluid">
                     {this.state.orders.map(order => {
-                        const createdDate = moment(new Date(order.createdAt)).format('HH:mm:ss');
+                        const createdDate = new Date(order.createdAt).toTimeString().substr(0, 8);
                         return (
                             <div className="row view-order-container" key={order._id}>
                                 <div className="col-md-4 view-order-left-col p-3">
