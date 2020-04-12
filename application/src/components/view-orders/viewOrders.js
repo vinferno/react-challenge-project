@@ -2,17 +2,12 @@ import React, { Component } from 'react';
 import { Template } from '../../components';
 import { SERVER_IP } from '../../private';
 import './viewOrders.css';
+import moment from 'moment'
 
 class ViewOrders extends Component {
     state = {
         orders: []
     };
-
-    pad2(value) {
-        return new Intl.NumberFormat('en-IN', {
-            minimumIntegerDigits: 2,
-        }).format(value)
-    }
 
     componentDidMount() {
         fetch(`${SERVER_IP}/api/current-orders`)
@@ -31,7 +26,7 @@ class ViewOrders extends Component {
             <Template>
                 <div className="container-fluid">
                     {this.state.orders.map(order => {
-                        const createdDate = new Date(order.createdAt);
+                        const createdDate = moment(new Date(order.createdAt)).format('HH:mm:ss');
                         return (
                             <div className="row view-order-container" key={order._id}>
                                 <div className="col-md-4 view-order-left-col p-3">
@@ -39,7 +34,7 @@ class ViewOrders extends Component {
                                     <p>Ordered by: {order.ordered_by || ''}</p>
                                 </div>
                                 <div className="col-md-4 d-flex view-order-middle-col">
-                                    <p>Order placed at {`${this.pad2(createdDate.getHours())}:${this.pad2(createdDate.getMinutes())}:${this.pad2(createdDate.getSeconds())}`}</p>
+                                    <p>Order placed at {`${createdDate}`}</p>
                                     <p>Quantity: {order.quantity}</p>
                                  </div>
                                  <div className="col-md-4 view-order-right-col">
