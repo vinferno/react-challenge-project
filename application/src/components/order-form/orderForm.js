@@ -3,28 +3,64 @@ import { Template } from '../../components';
 import { connect } from 'react-redux';
 import { SERVER_IP } from '../../private';
 import './orderForm.css';
+import store from "../../redux/store";
+import {editOrder, selectOrder, selectOrderClear} from "../../redux/actions/selectActions";
 
-const ADD_ORDER_URL = `${SERVER_IP}/api/add-order`
-
+const ADD_ORDER_URL = `${SERVER_IP}/api/add-order`;
 const mapStateToProps = (state) => ({
     auth: state.auth,
-})
+});
+const mapActionsToProps = dispatch => ({
+    commenceSelectClear: () => dispatch(selectOrderClear()),
+    commenceSelectEdit: (order) => dispatch(editOrder(order)),
+});
 
 class OrderForm extends Component {
+    subscriptions = [];
     constructor(props) {
         super(props);
         this.state = {
             order_item: "",
-            quantity: "1"
+            quantity: "1",
+            ...store.getState(),
+        };
+    }
+    componentDidMount() {
+        if (this.state.selected.order) {
+            this.setState({
+                order_item: this.state.selected.order.order_item,
+                quantity: this.state.selected.order.quantity,
+            });
         }
+
+        this.subscriptions.push(
+            store.subscribe( () => {
+                this.props.history.push('/view-orders')
+            })
+        )
+    }
+
+    unsubscribe() {
+        this.subscriptions.forEach( sub => sub())
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe();
+        this.props.commenceSelectClear();
     }
 
     menuItemChosen(event) {
-        this.setState({ item: event.target.value });
+        this.setState({ order_item: event.target.value });
     }
 
     menuQuantityChosen(event) {
         this.setState({ quantity: event.target.value });
+    }
+
+    submit(e) {
+        this.state.selected.order ?
+            this.editOrderSubmit(e) :
+            this.submitOrder(e);
     }
 
     submitOrder(event) {
@@ -46,12 +82,22 @@ class OrderForm extends Component {
         .catch(error => console.error(error));
     }
 
+    editOrderSubmit(event) {
+        event.preventDefault();
+        if (this.state.order_item === "") return;
+        this.props.commenceSelectEdit({
+            id: this.state.selected.order._id,
+            order_item: this.state.order_item,
+            quantity: this.state.quantity,
+        });
+    }
+
     render() {
         return (
             <Template>
                 <div className="form-wrapper">
                     <form>
-                        <label className="form-label">I'd like to order...</label><br />
+                        <label className="form-label">{!this.state.selected.order ? "I'd like to order..." : "On second thought..."}</label><br />
                         <select 
                             value={this.state.order_item} 
                             onChange={(event) => this.menuItemChosen(event)}
@@ -72,7 +118,7 @@ class OrderForm extends Component {
                             <option value="5">5</option>
                             <option value="6">6</option>
                         </select>
-                        <button type="button" className="order-btn" onClick={(event) => this.submitOrder(event)}>Order It!</button>
+                        <button type="button" className="order-btn" onClick={(event) => this.submit(event)}>{!this.state.selected.order ? 'Order It!' : 'Edit It!'}</button>
                     </form>
                 </div>
             </Template>
@@ -80,4 +126,6 @@ class OrderForm extends Component {
     }
 }
 
-export default connect(mapStateToProps, null)(OrderForm);
+export default connect(mapStateToProps, mapActionsToProps)(OrderForm);
+
+
