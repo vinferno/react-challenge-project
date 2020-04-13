@@ -8,8 +8,10 @@ const AppRouter = (props) => {
     <Router>
       <Route path="/" exact component={Main} />
       <Route path="/login" exact component={Login} />
+      <PrivateRoute path="/edit-order" exact component={OrderForm} />
       <PrivateRoute path="/order" exact component={OrderForm} />
       <PrivateRoute path="/view-orders" exact component={ViewOrders} />
+
     </Router>
   );
 }
