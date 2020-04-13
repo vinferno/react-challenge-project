@@ -1,23 +1,46 @@
 import React, { Component } from 'react';
 import { connect } from 'react-redux'; 
-import { loginUser } from '../../../redux/actions/authActions'
+import { loginUser } from '../../../redux/actions/authActions';
+import store from './../../../redux/store';
 
 const mapActionsToProps = dispatch => ({
   commenceLogin(email, password) {
     dispatch(loginUser(email, password))
   }
-})
+});
+
+
 
 class LoginForm extends Component {
   state = {
     email: "",
     password: "",
-  }
+  };
+  subscriptions = [];
+
+    unsubscribe() {
+      this.subscriptions.forEach( sub => sub());
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe()
+    }
+    componentWillMount() {
+        this.subscriptions.push(
+            store.subscribe( (test) => {
+                const currentState = store.getState();
+                if (currentState && currentState.auth && currentState.auth.token) {
+                    this.props.onLogin();
+                }
+            })
+        );
+    }
+
+
 
   login(e) {
     e.preventDefault();
     this.props.commenceLogin(this.state.email, this.state.password);
-    this.props.onLogin();
   }
 
   onChange(key, val) {
