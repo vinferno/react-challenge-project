@@ -2,13 +2,39 @@ import React, { Component } from 'react';
 import { Template } from '../../components';
 import { SERVER_IP } from '../../private';
 import './viewOrders.css';
+import {selectedOrderDelete, selectOrder, selectOrderClear} from "../../redux/actions/selectActions";
+import {connect} from "react-redux";
+import store from "../../redux/store";
+
+const mapActionsToProps = dispatch => ({
+    commenceSelectOrder: (order) => dispatch(selectOrder(order)),
+    commenceSelectClear: () => dispatch(selectOrderClear()),
+    commenceSelectDelete: (order) => dispatch(selectedOrderDelete(order)),
+});
+
+
 
 class ViewOrders extends Component {
     state = {
         orders: []
+    };
+
+    subscriptions = [];
+    componentDidMount() {
+
+        this.getOrders();
+        this.subscriptions.push(
+            store.subscribe( () => {
+                const state = store.getState();
+                if (state && state.selected.success) {
+                    this.props.commenceSelectClear();
+                    this.getOrders();
+                }
+            })
+        )
     }
 
-    componentDidMount() {
+    getOrders() {
         fetch(`${SERVER_IP}/api/current-orders`)
             .then(response => response.json())
             .then(response => {
@@ -18,6 +44,20 @@ class ViewOrders extends Component {
                     console.log('Error getting orders');
                 }
             });
+    }
+
+    componentWillUnmount() {
+        this.unsubscribe();
+    }
+
+    unsubscribe() {
+        this.subscriptions.forEach( sub => sub())
+    }
+
+
+    goToEdit(order) {
+        this.props.commenceSelectOrder({order});
+        this.props.history.push("/edit-order");
     }
 
     render() {
@@ -37,8 +77,8 @@ class ViewOrders extends Component {
                                     <p>Quantity: {order.quantity}</p>
                                  </div>
                                  <div className="col-md-4 view-order-right-col">
-                                     <button className="btn btn-success">Edit</button>
-                                     <button className="btn btn-danger">Delete</button>
+                                     <button onClick={ e => this.goToEdit(order)} className="btn btn-success">Edit</button>
+                                     <button onClick={ e => this.props.commenceSelectDelete(order)} className="btn btn-danger">Delete</button>
                                  </div>
                             </div>
                         );
@@ -49,4 +89,4 @@ class ViewOrders extends Component {
     }
 }
 
-export default ViewOrders;
+export default connect(null, mapActionsToProps)(ViewOrders);
